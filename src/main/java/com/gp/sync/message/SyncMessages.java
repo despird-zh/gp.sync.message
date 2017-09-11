@@ -5,6 +5,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Optional;
 
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -97,7 +98,7 @@ public class SyncMessages {
 	}
 	
 	/**
-	 * wrap the sync push message into byte array
+	 * wrap the sync push message into byte array( json string)
 	 **/
 	public static byte[] wrapPushMessage(SyncPushMessage pushMsg) {
 		
@@ -109,6 +110,21 @@ public class SyncMessages {
 		}
 		
 		return new byte[0];
+	}
+	
+	/**
+	 * wrap the sync push message into json string
+	 **/
+	public static String wrapPushMessageJson(SyncPushMessage pushMsg) {
+		
+		if(null == pushMsg) return StringUtils.EMPTY;
+		try {
+			return MESSAGE_MAPPER.writeValueAsString(pushMsg);
+		} catch (IOException e) {
+			LOGGER.debug("Fail to wrap the PushMessage into String", e);
+		}
+		
+		return StringUtils.EMPTY;
 	}
 	
 	/**
