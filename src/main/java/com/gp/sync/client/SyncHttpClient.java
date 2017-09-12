@@ -1,5 +1,6 @@
 package com.gp.sync.client;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -121,7 +122,7 @@ public class SyncHttpClient {
 				return AuthTokenState.VALID_TOKEN;
 			}
 			try {
-				Map<String, String> dataMap = MapUtils.EMPTY_MAP;
+				Map<String, String> dataMap = new HashMap<String, String>();
 				dataMap.put("principal", user);
 				dataMap.put("credential", password);
 				dataMap.put("audience", audience);
