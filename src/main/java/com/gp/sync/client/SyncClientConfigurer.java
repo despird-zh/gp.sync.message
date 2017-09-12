@@ -36,6 +36,11 @@ public class SyncClientConfigurer implements AsyncConfigurer {
 		return new SyncPushProcess(restTemplate);
 	}
 	
+	@Bean
+	SyncAuthenProcess authenProcess(RestTemplate restTemplate) {
+		return new SyncAuthenProcess(restTemplate);
+	}
+	
     /**
      * Prepare the rest template for http json data requesting 
      **/

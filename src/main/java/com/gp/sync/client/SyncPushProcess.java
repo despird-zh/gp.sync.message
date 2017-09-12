@@ -1,5 +1,6 @@
 package com.gp.sync.client;
 
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
@@ -10,88 +11,107 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.client.RestTemplate;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.gp.sync.message.SyncMessages;
 import com.gp.sync.message.SyncPushMessage;
-import com.gp.util.CommonUtils;
 import com.gp.web.ActionResult;
-import com.gp.web.ActionResult.Meta;
+import com.gp.web.servlet.ServiceTokenFilter.AuthTokenState;
 
-public class SyncPushProcess {
+public class SyncPushProcess extends SyncClientProcess{
 
-	static Logger LOGGER = LoggerFactory.getLogger(SyncPushProcess.class);
-	
 	private RestTemplate restTemplate;
-	private String url;
-	
+
 	public SyncPushProcess(RestTemplate restTemplate) {
 		this.restTemplate = restTemplate;
 	}
 	
-	public void setUrl(String url) {
-		this.url = url;
-	}
-	
 	@Async
-	public void processPush(SyncPushMessage pushMessage){
-		
-		HttpHeaders headers = new HttpHeaders(); 
-        headers.add("Content-Type", "text/html"); 
-        headers.add("Accept", "application/json;"); 
-        headers.add("Accept-Encoding", "gzip, deflate, sdch"); 
-        headers.add("Cache-Control", "max-age=0"); 
-        headers.add("Connection", "keep-alive"); 
-        
-        String body = SyncMessages.wrapPushMessageJson(pushMessage);
-        if(LOGGER.isDebugEnabled()) {
-        		LOGGER.debug("trying to push message: {}", body);
-        }
-        
-        HttpEntity<String> requestEntity = new HttpEntity<String>(body, headers); 
-        
-        ResponseEntity<String> respEntity = restTemplate.exchange(url,  
-                HttpMethod.POST, requestEntity, String.class);  
-        HttpStatus status = respEntity.getStatusCode();  
-        
+	public void processPush(SyncSendTracer<SyncPushMessage> sendTracer, String token){
+
         ActionResult result = null;
+        boolean needResend = false;
         
-        if(status.is2xxSuccessful()) {
-        		String content = respEntity.getBody();
-        		result = parse(content);
-        		if(LOGGER.isDebugEnabled()) {
-        			LOGGER.debug("success send the message");
-        		}
-        }else {
-        		result = ActionResult.failure("Fail to push message to remote server.");
-        		if(LOGGER.isDebugEnabled()) {
-        			LOGGER.debug("fail send the message");
-        		}
-        }
-        
-		// process the response 
-		
-	}
-	
-	private ActionResult parse(String response) {
-		
+		sendTracer.tryCount();
 		try {
-			
-			JsonNode root = CommonUtils.JSON_MAPPER.readTree(response);
-			ActionResult rtv = new ActionResult();
-			
-			Meta meta = new Meta(
-					root.path("meta").path("state").textValue(),
-					root.path("meta").path("message").textValue()
-				);
-			meta.setCode(root.path("meta").path("code").textValue());
-			
-			rtv.setMeta(meta);
-			
-			return rtv;
-		} catch (Exception e) {
-			LOGGER.debug("Error parse the response body:", response);
+			HttpHeaders headers = new HttpHeaders(); 
+	        headers.add("Content-Type", "text/html"); 
+	        headers.add("Accept", "application/json;"); 
+	        headers.add("Accept-Encoding", "gzip, deflate, sdch"); 
+	        headers.add("Cache-Control", "max-age=0"); 
+	        headers.add("Connection", "keep-alive"); 
+	        headers.add("Authorization", token); 
+	        String body = SyncMessages.wrapPushMessageJson(sendTracer.getSendData());
+	        if(LOGGER.isDebugEnabled()) {
+	        		LOGGER.debug("trying to push message: {}", body);
+	        }
+	       
+	        HttpEntity<String> requestEntity = new HttpEntity<String>(body, headers); 
+	        
+	        ResponseEntity<String> respEntity = restTemplate.exchange(sendTracer.getUrl(),  
+	                HttpMethod.POST, requestEntity, String.class);  
+	        HttpStatus status = respEntity.getStatusCode();  
+	        	        
+	        if(status.is2xxSuccessful()) {
+	        		String content = respEntity.getBody();
+	        		result = parse(content);
+	        		if(LOGGER.isDebugEnabled()) {
+	        			LOGGER.debug("success send the message");
+	        		}
+	        		
+	        		AuthTokenState code = getMetaCode(result.getMeta().getCode());
+	        		
+	        		if(!result.isSuccess()) {
+	        			if(AuthTokenState.BAD_TOKEN == code ||
+	        					AuthTokenState.GHOST_TOKEN == code ||
+	        					AuthTokenState.INVALID_TOKEN == code ||
+	        					AuthTokenState.EXPIRE_TOKEN == code) {
+	        				// fail caused by token
+	        				needResend = true;
+	        				SyncHttpClient.getInstance().clearToken();
+	        				updateMessage(sendTracer.getSendData());
+	        			}else {
+	        				// fail from sync-push method
+	        				updateMessage(sendTracer.getSendData());
+	        			}
+	        		}else {
+	        			// success
+	        			updateMessage(sendTracer.getSendData());
+	        		}
+	        }else {
+	        		// net reason
+	        		needResend = true;
+	        		if(LOGGER.isDebugEnabled()) {
+	        			LOGGER.debug("Fail to push message to remote server[{}].", status.toString());
+	        		}
+	        }
+
+		}finally {
+			sendTracer.stopTrace();
 		}
 		
-		return null;
+		if(needResend) {
+			SyncHttpClient.getInstance().pushMessage(sendTracer);
+		}
+	}
+
+	public void persistMessage(SyncPushMessage pushMsg) {
+		LOGGER.debug("persist the message");
+	}
+	
+	public void updateMessage(SyncPushMessage pushMsg) {
+		LOGGER.debug("update the message");
+	}
+	
+	private AuthTokenState getMetaCode(String code) {
+		if(StringUtils.isBlank(code)) {
+			return AuthTokenState.UNKNOWN;
+		}else {
+			code = code.toUpperCase();
+		}
+		try {
+			return AuthTokenState.valueOf(code);
+		}catch(Exception e) {
+			
+			return AuthTokenState.UNKNOWN;
+		}
 	}
 }
