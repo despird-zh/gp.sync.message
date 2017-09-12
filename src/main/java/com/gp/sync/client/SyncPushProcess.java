@@ -1,5 +1,7 @@
 package com.gp.sync.client;
 
+import java.util.Arrays;
+
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -7,6 +9,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.client.RestTemplate;
@@ -33,12 +36,9 @@ public class SyncPushProcess extends SyncClientProcess{
 		sendTracer.tryCount();
 		try {
 			HttpHeaders headers = new HttpHeaders(); 
-	        headers.add("Content-Type", "text/html"); 
-	        headers.add("Accept", "application/json;"); 
-	        headers.add("Accept-Encoding", "gzip, deflate, sdch"); 
-	        headers.add("Cache-Control", "max-age=0"); 
-	        headers.add("Connection", "keep-alive"); 
-	        headers.add("Authorization", token); 
+			headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
+		    headers.add("Authorization", token);
+
 	        String body = SyncMessages.wrapPushMessageJson(sendTracer.getSendData());
 	        if(LOGGER.isDebugEnabled()) {
 	        		LOGGER.debug("trying to push message: {}", body);
@@ -84,6 +84,8 @@ public class SyncPushProcess extends SyncClientProcess{
 	        		}
 	        }
 
+		}catch(Exception e){
+			LOGGER.error("fail to push message to remote server.", e);
 		}finally {
 			sendTracer.stopTrace();
 		}

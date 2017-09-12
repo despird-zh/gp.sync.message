@@ -1,5 +1,6 @@
 package com.gp.sync.client;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -9,6 +10,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
@@ -30,10 +32,7 @@ public class SyncAuthenProcess extends SyncClientProcess{
 		String json = CommonUtils.toJson(dataMap);
 		
 		HttpHeaders headers = new HttpHeaders(); 
-        headers.add("Content-Type", "text/html"); 
-        headers.add("Accept", "application/json;"); 
-        headers.add("Accept-Encoding", "gzip, deflate, sdch"); 
-        headers.add("Cache-Control", "max-age=0"); 
+		headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
         
         if(LOGGER.isDebugEnabled()) {
         		LOGGER.debug("trying to issue token: {}", json);

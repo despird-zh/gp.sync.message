@@ -139,6 +139,10 @@ public class SyncHttpClient {
 						return AuthTokenState.UNKNOWN;
 					}
 				}
+			}catch(Exception e){
+				
+				LOGGER.error("fail to push message to remote server.", e);
+				return AuthTokenState.UNKNOWN;
 			}finally {
 				authLock.unlock();
 			}
