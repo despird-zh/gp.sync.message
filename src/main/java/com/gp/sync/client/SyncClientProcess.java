@@ -8,10 +8,18 @@ import com.gp.util.CommonUtils;
 import com.gp.web.ActionResult;
 import com.gp.web.ActionResult.Meta;
 
+/**
+ * Super class for message sending process
+ * provide method to parse the response from remote server 
+ **/
 public class SyncClientProcess {
 	
 	static Logger LOGGER = LoggerFactory.getLogger(SyncPushProcess.class);
 	
+	/**
+	 * Parse the remove response content
+	 * @return  ActionResult the action result
+	 **/
 	ActionResult parse(String response) {
 		
 		ActionResult rtv = new ActionResult();

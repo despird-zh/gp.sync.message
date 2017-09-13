@@ -2,10 +2,6 @@ package com.gp.sync.client;
 
 import java.util.Arrays;
 import java.util.Map;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-
-import org.apache.commons.collections.MapUtils;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -17,14 +13,32 @@ import org.springframework.web.client.RestTemplate;
 import com.gp.util.CommonUtils;
 import com.gp.web.ActionResult;
 
+/**
+ * Process the authentication to generate token 
+ * 
+ * @author gdiao
+ * @version 0.1 2016-12-10
+ * 
+ **/
 public class SyncAuthenProcess extends SyncClientProcess{
 
 	private RestTemplate restTemplate;
 	
+	/**
+	 * Constructor with rest template
+	 * @param restTemplate the template of rest request
+	 **/
 	public SyncAuthenProcess(RestTemplate restTemplate) {
 		this.restTemplate = restTemplate;
 	}
 	
+	/**
+	 * Try to issue the jwt token, it runs in synchronize mode.
+	 * 
+	 * @param authTracer the authentication tracer 
+	 * @return ActionResult the action result, when [VALID_TOKEN = meta.code] the data string is token.
+	 * 
+	 **/
 	public ActionResult tryIssueToken(SyncSendTracer<Map<String, String>> authTracer){
 		
 		Map<String, String> dataMap = authTracer.getSendData();

@@ -14,6 +14,14 @@ import com.gp.sync.message.SyncPushMessage;
 import com.gp.web.ActionResult;
 import com.gp.web.servlet.ServiceTokenFilter.AuthTokenState;
 
+/**
+ * Provide a singleton instance to send message to remove server, the client will maintain the valid token for sync message pushing.
+ * This package is prepared for the client system that need to push sync message to sync node.
+ * 
+ * @author gdiao
+ * @version 0.1 2016-12-12
+ * 
+ **/
 public class SyncHttpClient {
 	
 	static Logger LOGGER = LoggerFactory.getLogger(SyncHttpClient.class);
@@ -31,6 +39,12 @@ public class SyncHttpClient {
 	private String audience;
 	private String token;
 	
+	private AuthTokenState tokenState;
+	
+	/**
+	 * Get the singleton instance 
+	 * 
+	 **/
 	public static SyncHttpClient getInstance() {
 		
 		if(null == httpClient) {
@@ -40,6 +54,14 @@ public class SyncHttpClient {
 		return httpClient;
 	}
 	
+	/**
+	 * Set the authentication setting for token generation.
+	 * 
+	 * @param user
+	 * @param password
+	 * @param authenUrl
+	 * @param audience 
+	 **/
 	public void setAuthenSetting(String user, String password, String authenUrl, String audience) {
 		this.user = user;
 		this.password = password;
@@ -47,6 +69,10 @@ public class SyncHttpClient {
 		this.audience = audience;
 	}
 	
+	/**
+	 * Hidden constructor, here initialize the message push process {@link SyncPushProcess} 
+	 * and authenticate process {@link SyncAuthenProcess}
+	 **/
 	private SyncHttpClient() {
 		
 		this.pushProcess = AppContextHelper.getSpringBean(SyncPushProcess.class);
@@ -97,8 +123,13 @@ public class SyncHttpClient {
 	
 	/**
 	 * Try to refresh the token. 
+	 * 
 	 * @return AuthTokenState there is 3 cases:
-	 * 		
+	 * <ul>		
+	 * 	<li>VALID_TOKEN - the token is valid</li>
+	 *  <li>FAIL_AUTHC - fail authenticate</li>
+	 *  <li>UNKNOWN - unknown reason, possible network broken</li>
+	 * </ul>
 	 **/
 	AuthTokenState refreshToken() {
 		
@@ -106,7 +137,7 @@ public class SyncHttpClient {
 			authLock.lock();
 			if(StringUtils.isNotBlank(token)) {
 				authLock.unlock();
-				return AuthTokenState.VALID_TOKEN;
+				return tokenState = AuthTokenState.VALID_TOKEN;
 			}
 			try {
 				Map<String, String> dataMap = new HashMap<String, String>();
@@ -118,23 +149,23 @@ public class SyncHttpClient {
 				ActionResult result = this.authenProcess.tryIssueToken(authTracer);
 				if(result.isSuccess()) {
 					this.token = (String) result.getData();
-					return AuthTokenState.VALID_TOKEN;
+					return tokenState = AuthTokenState.VALID_TOKEN;
 				}else {
 					if(AuthTokenState.FAIL_AUTHC.name().equals(result.getMeta().getCode())) {
-						return AuthTokenState.FAIL_AUTHC;
+						return tokenState = AuthTokenState.FAIL_AUTHC;
 					}else {
-						return AuthTokenState.UNKNOWN;
+						return tokenState = AuthTokenState.UNKNOWN;
 					}
 				}
 			}catch(Exception e){
 				
-				LOGGER.error("fail to push message to remote server.", e);
-				return AuthTokenState.UNKNOWN;
+				LOGGER.error("fail to send authen message to remote server.", e);
+				return tokenState = AuthTokenState.UNKNOWN;
 			}finally {
 				authLock.unlock();
 			}
 		}else {
-			return AuthTokenState.VALID_TOKEN;
+			return tokenState = AuthTokenState.VALID_TOKEN;
 		}
 	}
 	
@@ -145,4 +176,17 @@ public class SyncHttpClient {
 		this.token = null;
 	}
 
+	/**
+	 * Get the state token
+	 * 
+	 * @return AuthTokenState there is 3 cases:
+	 * <ul>		
+	 * 	<li>VALID_TOKEN - the token is valid</li>
+	 *  <li>FAIL_AUTHC - fail authenticate</li>
+	 *  <li>UNKNOWN - unknown reason, possible network broken</li>
+	 * </ul>
+	 **/
+	AuthTokenState getTokenState(){
+		return this.tokenState;
+	}
 }
