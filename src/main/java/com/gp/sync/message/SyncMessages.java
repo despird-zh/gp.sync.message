@@ -24,6 +24,15 @@ public class SyncMessages {
 	
 	static Logger LOGGER = LoggerFactory.getLogger(SyncMessages.class);
 	
+	public static enum SyncState{
+		PENDING, // ready for further process
+		SENT, // be sent out
+		SEND_FAIL, // fail send out
+		RECEIVED, // be received 
+		PROCESSED, // be handled
+		PROCESS_ERROR, // be process error
+	}
+	
 	public static ObjectMapper MESSAGE_MAPPER = new ObjectMapper();
 	public static final DateFormat JSON_DT_FORMATTER = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
 	

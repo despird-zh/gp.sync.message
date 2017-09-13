@@ -3,8 +3,6 @@ package com.gp.sync.client;
 import java.util.Arrays;
 
 import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -14,19 +12,36 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.client.RestTemplate;
 
+import com.gp.info.InfoId;
 import com.gp.sync.message.SyncMessages;
+import com.gp.sync.message.SyncMessages.SyncState;
 import com.gp.sync.message.SyncPushMessage;
 import com.gp.web.ActionResult;
 import com.gp.web.servlet.ServiceTokenFilter.AuthTokenState;
 
+/**
+ * Use the restTemplate to push the message
+ * 
+ * @author gdiao
+ * @version 0.1 2016-10-12
+ **/
 public class SyncPushProcess extends SyncClientProcess{
 
 	private RestTemplate restTemplate;
 
+	/**
+	 * Constructor with rest template 
+	 **/
 	public SyncPushProcess(RestTemplate restTemplate) {
 		this.restTemplate = restTemplate;
 	}
 	
+	/**
+	 * Send the {@link SyncPushMessage} to sync node, this method executed in async mode.
+	 * 
+	 * @param sendTracer the tracer to collect the elapse and retry times
+	 * @param token the Authentication token 
+	 **/
 	@Async
 	public void processPush(SyncSendTracer<SyncPushMessage> sendTracer, String token){
 
@@ -67,18 +82,19 @@ public class SyncPushProcess extends SyncClientProcess{
 	        				// fail caused by token
 	        				needResend = true;
 	        				SyncHttpClient.getInstance().clearToken();
-	        				updateMessage(sendTracer.getSendData());
+	        				updateMessage(sendTracer.getSendId(), sendTracer.getSendData(), SyncState.SEND_FAIL);
 	        			}else {
 	        				// fail from sync-push method
-	        				updateMessage(sendTracer.getSendData());
+	        				updateMessage(sendTracer.getSendId(), sendTracer.getSendData(), SyncState.SEND_FAIL);
 	        			}
 	        		}else {
 	        			// success
-	        			updateMessage(sendTracer.getSendData());
+	        			updateMessage(sendTracer.getSendId(), sendTracer.getSendData(), SyncState.SENT);
 	        		}
 	        }else {
 	        		// net reason
 	        		needResend = true;
+	        		updateMessage(sendTracer.getSendId(), sendTracer.getSendData(), SyncState.SEND_FAIL);
 	        		if(LOGGER.isDebugEnabled()) {
 	        			LOGGER.debug("Fail to push message to remote server[{}].", status.toString());
 	        		}
@@ -95,14 +111,25 @@ public class SyncPushProcess extends SyncClientProcess{
 		}
 	}
 
-	public void persistMessage(SyncPushMessage pushMsg) {
+	/**
+	 * Persist the sync push message
+	 **/
+	public InfoId<?> persistMessage(SyncPushMessage pushMsg) {
 		LOGGER.debug("persist the message");
+		return null;
 	}
 	
-	public void updateMessage(SyncPushMessage pushMsg) {
+	/**
+	 * Update the sync push message 
+	 **/
+	public void updateMessage(InfoId<?> sendId, SyncPushMessage pushMsg, SyncState state) {
 		LOGGER.debug("update the message");
 	}
 	
+	/**
+	 * Convert the ActionResult meta code into AuthTokenState
+	 * @param code the code of action result 
+	 **/
 	private AuthTokenState getMetaCode(String code) {
 		if(StringUtils.isBlank(code)) {
 			return AuthTokenState.UNKNOWN;

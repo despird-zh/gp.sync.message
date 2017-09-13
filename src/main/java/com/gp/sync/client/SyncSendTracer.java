@@ -2,6 +2,8 @@ package com.gp.sync.client;
 
 import org.springframework.util.StopWatch;
 
+import com.gp.info.InfoId;
+
 /**
  * Trace the message send profiling information, eg. try times and running time.
  * the information will be used to judge the overtime etc.
@@ -18,6 +20,7 @@ public class SyncSendTracer<T> {
 	
 	private T sendData = null;
 	private String url;
+	private InfoId<?> sendId;
 	
 	/**
 	 * Constructor with pushing parameters
@@ -74,5 +77,20 @@ public class SyncSendTracer<T> {
 	 **/
 	public String getUrl() {
 		return this.url;
+	}
+	
+	/**
+	 * Get the count of trying 
+	 **/
+	public int getTryCount() {
+		return this.tryCount;
+	}
+
+	public InfoId<?> getSendId() {
+		return sendId;
+	}
+
+	public void setSendId(InfoId<?> sendId) {
+		this.sendId = sendId;
 	}
 }

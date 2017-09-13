@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.gp.core.AppContextHelper;
+import com.gp.sync.message.SyncMessages.SyncState;
 import com.gp.sync.message.SyncPushMessage;
 import com.gp.web.ActionResult;
 import com.gp.web.servlet.ServiceTokenFilter.AuthTokenState;
@@ -39,7 +40,8 @@ public class SyncHttpClient {
 	private String audience;
 	private String token;
 	
-	private AuthTokenState tokenState;
+	private Long maxElapse = 30 * 1000L;
+	private int maxTries = 3;
 	
 	/**
 	 * Get the singleton instance 
@@ -89,16 +91,17 @@ public class SyncHttpClient {
 		
 		this.pushProcess.persistMessage(pushMessage);
 		AuthTokenState state = refreshToken();
-		
+		SyncSendTracer<SyncPushMessage> pushTracer = new SyncSendTracer<SyncPushMessage>(url, pushMessage);
 		if(state == AuthTokenState.VALID_TOKEN) {
-			SyncSendTracer<SyncPushMessage> pushTracer = new SyncSendTracer<SyncPushMessage>(url, pushMessage);
+			
 			this.pushProcess.processPush(pushTracer, this.token);
+			
 		}else if(state == AuthTokenState.FAIL_AUTHC) {
 			LOGGER.debug("Ignore push sync message, fail to issue token coz of wrong account or pwd");
-		}else if(state == AuthTokenState.UNKNOWN) {
-			LOGGER.debug("Ignore push sync message, coz of network broken or unknow error");
+			pushMessage(pushTracer);
 		}else {
 			LOGGER.debug("Ignore push sync message, coz of network broken or unknow error");
+			pushMessage(pushTracer);
 		}
 	}
 	
@@ -108,16 +111,21 @@ public class SyncHttpClient {
 	 * @param pushTracer the sending tracer.
 	 **/
 	void pushMessage(SyncSendTracer<SyncPushMessage> pushTracer) {
-				
+		
+		if(pushTracer.getTryCount() >= maxTries || pushTracer.getElapsedTime() >= maxElapse) {
+			this.pushProcess.updateMessage(pushTracer.getSendId(), pushTracer.getSendData(), SyncState.SEND_FAIL);
+			return;
+		}
+		
 		AuthTokenState state = refreshToken();
 		if(state == AuthTokenState.VALID_TOKEN) {
 			this.pushProcess.processPush(pushTracer, this.token);
 		}else if(state == AuthTokenState.FAIL_AUTHC) {
 			LOGGER.debug("Ignore push sync message, fail to issue token coz of wrong account or pwd");
-		}else if(state == AuthTokenState.UNKNOWN) {
-			LOGGER.debug("Ignore push sync message, coz of network broken or unknow error");
+			pushMessage(pushTracer);
 		}else {
 			LOGGER.debug("Ignore push sync message, coz of network broken or unknow error");
+			pushMessage(pushTracer);
 		}
 	}
 	
@@ -137,7 +145,7 @@ public class SyncHttpClient {
 			authLock.lock();
 			if(StringUtils.isNotBlank(token)) {
 				authLock.unlock();
-				return tokenState = AuthTokenState.VALID_TOKEN;
+				return AuthTokenState.VALID_TOKEN;
 			}
 			try {
 				Map<String, String> dataMap = new HashMap<String, String>();
@@ -149,23 +157,23 @@ public class SyncHttpClient {
 				ActionResult result = this.authenProcess.tryIssueToken(authTracer);
 				if(result.isSuccess()) {
 					this.token = (String) result.getData();
-					return tokenState = AuthTokenState.VALID_TOKEN;
+					return AuthTokenState.VALID_TOKEN;
 				}else {
 					if(AuthTokenState.FAIL_AUTHC.name().equals(result.getMeta().getCode())) {
-						return tokenState = AuthTokenState.FAIL_AUTHC;
+						return AuthTokenState.FAIL_AUTHC;
 					}else {
-						return tokenState = AuthTokenState.UNKNOWN;
+						return AuthTokenState.UNKNOWN;
 					}
 				}
 			}catch(Exception e){
 				
 				LOGGER.error("fail to send authen message to remote server.", e);
-				return tokenState = AuthTokenState.UNKNOWN;
+				return AuthTokenState.UNKNOWN;
 			}finally {
 				authLock.unlock();
 			}
 		}else {
-			return tokenState = AuthTokenState.VALID_TOKEN;
+			return AuthTokenState.VALID_TOKEN;
 		}
 	}
 	
@@ -176,17 +184,4 @@ public class SyncHttpClient {
 		this.token = null;
 	}
 
-	/**
-	 * Get the state token
-	 * 
-	 * @return AuthTokenState there is 3 cases:
-	 * <ul>		
-	 * 	<li>VALID_TOKEN - the token is valid</li>
-	 *  <li>FAIL_AUTHC - fail authenticate</li>
-	 *  <li>UNKNOWN - unknown reason, possible network broken</li>
-	 * </ul>
-	 **/
-	AuthTokenState getTokenState(){
-		return this.tokenState;
-	}
 }
