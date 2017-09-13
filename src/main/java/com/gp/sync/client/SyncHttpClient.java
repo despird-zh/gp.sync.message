@@ -5,27 +5,14 @@ import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.util.Assert;
 
-import com.gp.common.AccessPoint;
-import com.gp.common.GPrincipal;
-import com.gp.common.GroupUsers;
-import com.gp.common.JwtPayload;
-import com.gp.common.SystemOptions;
 import com.gp.core.AppContextHelper;
-import com.gp.core.MasterFacade;
-import com.gp.core.SecurityFacade;
-import com.gp.dao.info.SysOptionInfo;
-import com.gp.exception.CoreException;
 import com.gp.sync.message.SyncPushMessage;
-import com.gp.util.JwtTokenUtils;
 import com.gp.web.ActionResult;
 import com.gp.web.servlet.ServiceTokenFilter.AuthTokenState;
-import com.gp.web.util.ExWebUtils;
 
 public class SyncHttpClient {
 	
