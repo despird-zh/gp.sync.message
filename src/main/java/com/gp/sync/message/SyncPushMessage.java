@@ -1,5 +1,7 @@
 package com.gp.sync.message;
 
+import com.gp.sync.SyncMessage;
+
 /**
  * the distributed nodes use push structure to send information to center node or global node.
  * so the payload of content could be any operation to be synchronized.

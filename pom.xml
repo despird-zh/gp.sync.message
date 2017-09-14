@@ -19,11 +19,6 @@
 		<upload.version>1.3.2</upload.version>
 	</properties>
   <dependencies>
-  	<dependency>
-		<groupId>com.gp</groupId>
-		<artifactId>gp-svc</artifactId>
-		<version>0.1</version>
-	</dependency>
 	<dependency>
 		<groupId>com.gp</groupId>
 		<artifactId>gp-core</artifactId>

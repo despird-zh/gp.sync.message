@@ -1,4 +1,4 @@
-package com.gp.sync.message;
+package com.gp.sync;
 
 import java.util.ArrayList;
 import java.util.List;

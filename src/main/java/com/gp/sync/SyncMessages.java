@@ -1,4 +1,4 @@
-package com.gp.sync.message;
+package com.gp.sync;
 
 import java.io.IOException;
 import java.text.DateFormat;
@@ -19,6 +19,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.gp.sync.message.SyncNotifyMessage;
+import com.gp.sync.message.SyncPushMessage;
 
 public class SyncMessages {
 	

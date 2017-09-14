@@ -2,6 +2,8 @@ package com.gp.sync.message;
 
 import java.util.Date;
 
+import com.gp.sync.SyncMessage;
+
 public class SyncPullMessage extends SyncMessage{
 	
 	private Date lastPullTime;

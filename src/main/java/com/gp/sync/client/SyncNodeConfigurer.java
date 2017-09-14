@@ -21,7 +21,7 @@ import org.springframework.web.client.RestTemplate;
  **/
 @Configuration
 @EnableAsync
-public class SyncClientConfigurer implements AsyncConfigurer {
+public class SyncNodeConfigurer implements AsyncConfigurer {
 
 	@Override
 	public Executor getAsyncExecutor() {
@@ -40,8 +40,8 @@ public class SyncClientConfigurer implements AsyncConfigurer {
 	}
 	
 	@Bean
-	SyncPushProcess pushProcess(RestTemplate restTemplate) {
-		return new SyncPushProcess(restTemplate);
+	SyncTriggerProcess pushProcess(RestTemplate restTemplate) {
+		return new SyncTriggerProcess(restTemplate);
 	}
 	
 	@Bean

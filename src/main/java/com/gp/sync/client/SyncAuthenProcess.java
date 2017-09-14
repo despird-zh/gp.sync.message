@@ -10,6 +10,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
+import com.gp.sync.SyncClientProcess;
 import com.gp.util.CommonUtils;
 import com.gp.web.ActionResult;
 
