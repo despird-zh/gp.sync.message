@@ -108,7 +108,7 @@ public class SyncTriggerProcess extends SyncClientProcess{
 		}
 		
 		if(needResend) {
-			SyncNodeClient.getInstance().pushMessage(sendTracer);
+			SyncNodeClient.getInstance().sendMessage(sendTracer);
 		}
 	}
 	

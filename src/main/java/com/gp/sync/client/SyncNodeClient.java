@@ -112,11 +112,11 @@ public class SyncNodeClient {
 		}else if(state == AuthTokenState.FAIL_AUTHC) {
 			pushTracer.tryCount(); // this case the remote is reachable
 			LOGGER.debug("Ignore push sync message, fail to issue token coz of wrong account or pwd");
-			pushMessage(pushTracer);
+			sendMessage(pushTracer);
 		}else {
 			pushTracer.tryCount(); // though not get token, count one time
 			LOGGER.debug("Ignore push sync message, coz of network broken or unknow error");
-			pushMessage(pushTracer);
+			sendMessage(pushTracer);
 		}
 	}
 	
@@ -125,7 +125,7 @@ public class SyncNodeClient {
 	 * 
 	 * @param pushTracer the sending tracer.
 	 **/
-	void pushMessage(SyncSendTracer<SyncTriggerMessage> pushTracer) {
+	void sendMessage(SyncSendTracer<SyncTriggerMessage> pushTracer) {
 		
 		LOGGER.debug("retries:{} / elapse:{}", pushTracer.getTryCount(), pushTracer.getElapsedTime());
 		if(pushTracer.getTryCount() >= maxTries || pushTracer.getElapsedTime() >= maxElapse) {
@@ -139,11 +139,11 @@ public class SyncNodeClient {
 		}else if(state == AuthTokenState.FAIL_AUTHC) {
 			pushTracer.tryCount(); // this case the remote is reachable
 			LOGGER.debug("Ignore push sync message, fail to issue token coz of wrong account or pwd");
-			pushMessage(pushTracer);
+			sendMessage(pushTracer);
 		}else {
 			pushTracer.tryCount(); // though not get token, count one time
 			LOGGER.debug("Ignore push sync message, coz of network broken or unknow error");
-			pushMessage(pushTracer);
+			sendMessage(pushTracer);
 		}
 	}
 	
