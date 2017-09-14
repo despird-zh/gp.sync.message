@@ -24,16 +24,6 @@ public class SyncMessages {
 	
 	static Logger LOGGER = LoggerFactory.getLogger(SyncMessages.class);
 	
-	public static enum SyncState{
-		PENDING, // ready for further process
-		SENDING, // sending data
-		SENT, // be sent out
-		SEND_FAIL, // fail send out
-		RECEIVED, // be received 
-		PROCESSED, // be handled
-		PROCESS_ERROR, // be process error
-	}
-	
 	public static ObjectMapper MESSAGE_MAPPER = new ObjectMapper();
 	public static final DateFormat JSON_DT_FORMATTER = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
 	
@@ -130,6 +120,21 @@ public class SyncMessages {
 		if(null == pushMsg) return StringUtils.EMPTY;
 		try {
 			return MESSAGE_MAPPER.writeValueAsString(pushMsg);
+		} catch (IOException e) {
+			LOGGER.debug("Fail to wrap the PushMessage into String", e);
+		}
+		
+		return StringUtils.EMPTY;
+	}
+	
+	/**
+	 * wrap the sync push message into json string
+	 **/
+	public static String wrapPayload(Object payload) {
+		
+		if(null == payload) return StringUtils.EMPTY;
+		try {
+			return MESSAGE_MAPPER.writeValueAsString(payload);
 		} catch (IOException e) {
 			LOGGER.debug("Fail to wrap the PushMessage into String", e);
 		}

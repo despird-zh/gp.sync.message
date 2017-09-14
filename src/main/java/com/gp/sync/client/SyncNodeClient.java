@@ -10,7 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.gp.core.AppContextHelper;
-import com.gp.sync.message.SyncMessages.SyncState;
+import com.gp.common.Synchronizes.SyncState;
 import com.gp.sync.message.SyncPushMessage;
 import com.gp.web.ActionResult;
 import com.gp.web.servlet.ServiceTokenFilter.AuthTokenState;
@@ -23,11 +23,11 @@ import com.gp.web.servlet.ServiceTokenFilter.AuthTokenState;
  * @version 0.1 2016-12-12
  * 
  **/
-public class SyncHttpClient {
+public class SyncNodeClient {
 	
-	static Logger LOGGER = LoggerFactory.getLogger(SyncHttpClient.class);
+	static Logger LOGGER = LoggerFactory.getLogger(SyncNodeClient.class);
 	
-	private static SyncHttpClient httpClient;
+	private static SyncNodeClient httpClient;
 	
 	private SyncPushProcess pushProcess;
 	private SyncAuthenProcess authenProcess;
@@ -47,11 +47,11 @@ public class SyncHttpClient {
 	 * Get the singleton instance 
 	 * 
 	 **/
-	public static SyncHttpClient getInstance() {
+	public static SyncNodeClient getInstance() {
 		
 		if(null == httpClient) {
 			
-			httpClient = new SyncHttpClient();
+			httpClient = new SyncNodeClient();
 		}
 		return httpClient;
 	}
@@ -75,7 +75,7 @@ public class SyncHttpClient {
 	 * Hidden constructor, here initialize the message push process {@link SyncPushProcess} 
 	 * and authenticate process {@link SyncAuthenProcess}
 	 **/
-	private SyncHttpClient() {
+	private SyncNodeClient() {
 		
 		this.pushProcess = AppContextHelper.getSpringBean(SyncPushProcess.class);
 		this.authenProcess = AppContextHelper.getSpringBean(SyncAuthenProcess.class);

@@ -14,7 +14,7 @@ import org.springframework.web.client.RestTemplate;
 
 import com.gp.info.InfoId;
 import com.gp.sync.message.SyncMessages;
-import com.gp.sync.message.SyncMessages.SyncState;
+import com.gp.common.Synchronizes.SyncState;
 import com.gp.sync.message.SyncPushMessage;
 import com.gp.web.ActionResult;
 import com.gp.web.servlet.ServiceTokenFilter.AuthTokenState;
@@ -81,7 +81,7 @@ public class SyncPushProcess extends SyncClientProcess{
 	        					AuthTokenState.EXPIRE_TOKEN == code) {
 	        				// fail caused by token
 	        				needResend = true;
-	        				SyncHttpClient.getInstance().clearToken();
+	        				SyncNodeClient.getInstance().clearToken();
 	        				updateMessage(sendTracer.getSendId(), sendTracer.getSendData(), SyncState.SEND_FAIL);
 	        			}else {
 	        				// fail from sync-push method
@@ -107,7 +107,7 @@ public class SyncPushProcess extends SyncClientProcess{
 		}
 		
 		if(needResend) {
-			SyncHttpClient.getInstance().pushMessage(sendTracer);
+			SyncNodeClient.getInstance().pushMessage(sendTracer);
 		}
 	}
 
