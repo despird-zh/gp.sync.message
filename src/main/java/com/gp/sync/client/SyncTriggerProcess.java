@@ -83,19 +83,19 @@ public class SyncTriggerProcess extends SyncClientProcess{
 	        				// fail caused by token
 	        				needResend = true;
 	        				SyncNodeClient.getInstance().clearToken();
-	        				SyncNodeClient.getInstance().updateMessage(sendTracer.getSendData(), SyncState.SEND_FAIL);
+	        				SyncNodeClient.getInstance().updateMessage(sendTracer.getSendData().getInfoId(), SyncState.SEND_FAIL);
 	        			}else {
 	        				// fail from sync-push method
-	        				SyncNodeClient.getInstance().updateMessage(sendTracer.getSendData(), SyncState.SEND_FAIL);
+	        				SyncNodeClient.getInstance().updateMessage(sendTracer.getSendData().getInfoId(), SyncState.SEND_FAIL);
 	        			}
 	        		}else {
 	        			// success
-	        			SyncNodeClient.getInstance().updateMessage(sendTracer.getSendData(), SyncState.SENT);
+	        			SyncNodeClient.getInstance().updateMessage(sendTracer.getSendData().getInfoId(), SyncState.SENT);
 	        		}
 	        }else {
 	        		// net reason
 	        		needResend = true;
-	        		SyncNodeClient.getInstance().updateMessage(sendTracer.getSendData(), SyncState.SEND_FAIL);
+	        		SyncNodeClient.getInstance().updateMessage(sendTracer.getSendData().getInfoId(), SyncState.SEND_FAIL);
 	        		if(LOGGER.isDebugEnabled()) {
 	        			LOGGER.debug("Fail to push message to remote server[{}].", status.toString());
 	        		}

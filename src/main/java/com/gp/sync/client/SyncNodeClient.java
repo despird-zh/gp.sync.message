@@ -129,7 +129,7 @@ public class SyncNodeClient {
 		
 		LOGGER.debug("retries:{} / elapse:{}", pushTracer.getTryCount(), pushTracer.getElapsedTime());
 		if(pushTracer.getTryCount() >= maxTries || pushTracer.getElapsedTime() >= maxElapse) {
-			this.updateMessage(pushTracer.getSendData(), SyncState.SEND_FAIL);
+			this.updateMessage(pushTracer.getSendData().getInfoId(), SyncState.SEND_FAIL);
 			return;
 		}
 		
@@ -206,11 +206,16 @@ public class SyncNodeClient {
 	/**
 	 * Update the sync push message 
 	 **/
-	public void updateMessage(SyncTriggerMessage pushMsg, SyncState state) {
-		LOGGER.debug("update the message");
+	public void updateMessage(InfoId<Long> outId, SyncState state) {
+		if(null != this.nodeAdapter) {
+			this.nodeAdapter.changeOutMessageState(outId, state);
+		}
 	}
 	
 	public void persistMessage(SyncTriggerMessage pushMsg) {
-		LOGGER.debug("update the message");
+		if(null != this.nodeAdapter) {
+			InfoId<Long> id = this.nodeAdapter.persistOutMessage(pushMsg);
+			pushMsg.setInfoId(id);
+		}
 	}
 }

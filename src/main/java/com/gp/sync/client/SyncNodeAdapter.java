@@ -9,10 +9,10 @@ public interface SyncNodeAdapter {
 	/**
 	 * Persist the sync push message
 	 **/
-	public InfoId<?> persistMessage(SyncTriggerMessage pushMsg);
+	public InfoId<Long> persistOutMessage(SyncTriggerMessage pushMsg);
 	
 	/**
 	 * Update the sync push message 
 	 **/
-	public void changeMessageState(InfoId<Long> outId, SyncState state);
+	public void changeOutMessageState(InfoId<Long> outId, SyncState state);
 }
