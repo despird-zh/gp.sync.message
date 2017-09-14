@@ -26,6 +26,7 @@ public class SyncMessages {
 	
 	public static enum SyncState{
 		PENDING, // ready for further process
+		SENDING, // sending data
 		SENT, // be sent out
 		SEND_FAIL, // fail send out
 		RECEIVED, // be received 
